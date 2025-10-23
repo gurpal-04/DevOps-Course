@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flask_backend
+    ports:
+      - "5000:5000"
+    networks:
+      - appnet
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: node_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000/submit-form
+    depends_on:
+      - backend
+    networks:
+      - appnet
+    restart: unless-stopped
+
+networks:
+  appnet:
+    driver: bridge
