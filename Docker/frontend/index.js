@@ -17,7 +17,7 @@ app.get("/health", (req, res) => {
 
 // endpoint that proxies form submission to Flask backend (optional)
 app.post("/submit", async (req, res) => {
-    const backendUrl = process.env.BACKEND_URL || "http://backend:5000/submit-form";
+    const backendUrl = "http://3.85.89.137:5000/submit-form";
 
     try {
         // forward form as x-www-form-urlencoded
