@@ -1,10 +1,11 @@
 # Kubernetes Architecture
 
 ## Control Plane (Master Node)
+- One or more control plane nodes
+- The Control Plane manages and controls the entire Kubernetes cluster.
 
-The Control Plane manages and controls the entire Kubernetes cluster.
-
-### API Server
+## Agents 
+1. ### API Server
 - Entry point for all Kubernetes operations.
 - Receives requests from:
   - kubectl
@@ -13,7 +14,7 @@ The Control Plane manages and controls the entire Kubernetes cluster.
 - Validates and processes requests.
 - Communicates with etcd to store and retrieve cluster state.
 
-### Scheduler
+2. ### Scheduler
 - Decides which Worker Node should run a newly created Pod.
 - Considers:
   - Available resources (CPU, Memory)
@@ -21,7 +22,7 @@ The Control Plane manages and controls the entire Kubernetes cluster.
   - Taints and tolerations
   - Resource constraints
 
-### Controller Manager
+3. ### Controller Manager
 - Runs controllers that maintain the desired state of the cluster.
 - Examples:
   - Deployment Controller
@@ -30,7 +31,7 @@ The Control Plane manages and controls the entire Kubernetes cluster.
   - Job Controller
 - Continuously monitors the cluster and takes corrective actions when needed.
 
-### etcd
+4. ### etcd
 - Distributed key-value database.
 - Stores the entire cluster state.
 - Contains:
@@ -40,26 +41,35 @@ The Control Plane manages and controls the entire Kubernetes cluster.
   - ConfigMaps
   - Secrets
 - Acts as the single source of truth for Kubernetes.
+- etcd is a distributed, strongly consistent key-value database that stores the entire  Kubernetes cluster state.
+- Only the API Server can directly communicate with etcd.
+- Uses an append-only storage model; old data is periodically compacted.
+- etcdctl is the CLI tool used for backup (snapshot) and restore operations.
+- Supports High Availability (HA) using the Raft Consensus Algorithm, which provides automatic leader election and fault tolerance.
+- Can be deployed as:
+  - Stacked etcd – runs on the same control plane node.
+  - External etcd – runs on dedicated servers (recommended for production).
+- Stores Kubernetes resources such as Pods, Nodes, Deployments, ConfigMaps, Secrets, Services, and cluster configuration.
 
 ---
 
 ## Worker Node
+- One or more worker nodes (optional, but recommended).
+- Worker Nodes run the actual application workloads.
 
-Worker Nodes run the actual application workloads.
-
-### Kubelet
+1. ### Kubelet
 - Node agent running on every Worker Node.
 - Communicates with the API Server.
 - Ensures Pods are running as defined.
 - Monitors container health and reports status.
 
-### Kube-Proxy
+2. ### Kube-Proxy
 - Handles networking for Services.
 - Maintains network rules on the node.
 - Enables communication between Pods and Services.
 - Performs load balancing across Pod replicas.
 
-### Container Runtime
+3. ### Container Runtime
 - Software responsible for running containers.
 - Pulls container images.
 - Starts and stops containers.
