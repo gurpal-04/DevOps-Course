@@ -14,56 +14,81 @@ locals {
 
 provider "aws" {
   region = "us-east-1"
-
-  # endpoints {
-  #   s3       = local.endpoint
-  #   ec2      = local.endpoint
-  #   sts      = local.endpoint
-  #   iam      = local.endpoint
-  #   lambda   = local.endpoint
-  #   dynamodb = local.endpoint
-  #   sqs      = local.endpoint
-  #   sns      = local.endpoint
-  #   ecr      = local.endpoint
-  #   ecs      = local.endpoint
-  #   logs     = local.endpoint
-  #   events   = local.endpoint
-  #   ssm       = local.endpoint
-  #   secretsmanager = local.endpoint
-  # }
-
-  # skip_credentials_validation = true
-  # skip_metadata_api_check     = true
-  # skip_requesting_account_id  = true
+  access_key = var.access_key
+  secret_key = var.secret_key
 }
 
-# resource "aws_s3_bucket" "tf_state_bucket" {
-#   bucket = "tf-state-bucket-test"
+# --------------Single Server Deployment--------------
+# resource "aws_security_group" "web_server_security_group" {
+#   name = "web-server-security-group"
+#   description = "Security group for web server"
+
+#   ingress {
+#     from_port = 22
+#     to_port = 22
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   ingress {
+#     from_port = 80
+#     to_port = 80
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   ingress {
+#     from_port = 3000
+#     to_port = 3000
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#   ingress {
+#     from_port = 5000
+#     to_port = 5000
+#     protocol = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   egress {
+#     from_port = 0
+#     to_port = 0
+#     protocol = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   tags = {
+#     Name = "web-server-security-group"
+#   }
 # }
 
-# resource "aws_s3_bucket_acl" "tf_state_bucket_acl" {
-#   bucket = aws_s3_bucket.tf_state_bucket.id
-#   acl    = "private"
+# resource "aws_instance" "web" {
+#   ami           = "ami-0b6d9d3d33ba97d99"
+#   instance_type = "t2.micro"
+#   vpc_security_group_ids = [aws_security_group.web_server_security_group.id]
+  
+#   tags = {
+#     Name = "frontend-backend-server"
+#   }
+#   user_data = file("frontend-backend.sh")
+
 # }
 
 resource "aws_security_group" "web_server_security_group" {
   name = "web-server-security-group"
   description = "Security group for web server"
-
   ingress {
     from_port = 22
     to_port = 22
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   ingress {
     from_port = 80
     to_port = 80
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   ingress {
     from_port = 3000
     to_port = 3000
@@ -76,32 +101,43 @@ resource "aws_security_group" "web_server_security_group" {
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   egress {
     from_port = 0
     to_port = 0
     protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   tags = {
     Name = "web-server-security-group"
   }
 }
 
-resource "aws_instance" "web" {
-  ami           = "ami-0b6d9d3d33ba97d99"
+resource "aws_instance" "frontend" {
+  ami = "ami-0b6d9d3d33ba97d99"
   instance_type = "t2.micro"
   vpc_security_group_ids = [aws_security_group.web_server_security_group.id]
-  
   tags = {
-    Name = "frontend-backend-server"
+    Name = "frontend-server"
   }
-  user_data = file("frontend-backend.sh")
-
+  user_data = templatefile("frontend.sh", {
+    BACKEND_PUBLIC_IP = aws_instance.backend.public_ip
+  })
 }
 
-output "instance_public_ip" {
-  description = "The public IP address of the web server"
-  value       = aws_instance.web.public_ip
+resource "aws_instance" "backend" {
+  ami = "ami-0b6d9d3d33ba97d99"
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.web_server_security_group.id]
+  tags = {
+    Name = "backend-server"
+  }
+  user_data = file("backend.sh")
+}
+
+output "frontend_public_ip" {
+  value = aws_instance.frontend.public_ip
+}
+
+output "backend_public_ip" {
+  value = aws_instance.backend.public_ip
 }
