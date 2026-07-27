@@ -18,7 +18,10 @@ app.get("/health", (req, res) => {
 // endpoint that proxies form submission to Flask backend (optional)
 app.post("/submit", async (req, res) => {
   //   const backendUrl = "http://backend:5000/submit-form";
-  const backendUrl = `http://${process.env.BACKEND_PUBLIC_IP}:5000/submit-form`;
+  //   const backendUrl = `http://${process.env.BACKEND_PUBLIC_IP}:5000/submit-form`;
+  const backendUrl = `${process.env.BACKEND_URL}/submit-form`;
+  console.log("backendUrl", backendUrl);
+  console.log("process.env.BACKEND_URL", process.env.BACKEND_URL);
 
   try {
     // forward form as x-www-form-urlencoded

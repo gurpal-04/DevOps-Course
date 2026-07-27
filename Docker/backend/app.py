@@ -8,6 +8,10 @@ CORS(app)
 def home():
     return "Flask backend is running."
 
+@app.route("/health", methods=["GET"])
+def health():
+    return "OK"
+
 
 @app.route("/submit-form", methods=["POST"])
 def submit_form():
